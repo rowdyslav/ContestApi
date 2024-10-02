@@ -2,11 +2,12 @@ from bson import ObjectId
 from fastapi import Body, FastAPI, HTTPException, Response, status
 from pymongo import ReturnDocument
 
+from database.loader import db
 from database.models import Student, StudentCollection, UpdateStudentModel
 
 app = FastAPI()
 
-count = 0
+student_collection = db.get_collection("students")
 
 
 @app.post(
