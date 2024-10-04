@@ -47,7 +47,7 @@ async def list_students():
 
 
 @router.get(
-    "{id}",
+    "/{id}",
     response_description="Get a single student",
     response_model=Student,
     response_model_by_alias=False,
@@ -65,7 +65,7 @@ async def get_student(id: str):
 
 
 @router.put(
-    "{id}",
+    "/{id}",
     response_description="Update a student",
     response_model=Student,
     response_model_by_alias=False,
@@ -99,7 +99,7 @@ async def update_student(id: str, student: UpdateStudent = Body(...)):
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
-@router.delete("{id}", response_description="Delete a student")
+@router.delete("/{id}", response_description="Delete a student")
 async def delete_student(id: str):
     """
     Remove a single student record from the database.
