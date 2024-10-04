@@ -1,9 +1,9 @@
-from typing import Annotated, List, Optional
+from typing import List, Optional
 
 from bson import ObjectId
-from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-PyObjectId = Annotated[str, BeforeValidator(str)]
+from ..annotations import PyObjectId
 
 
 class Student(BaseModel):
