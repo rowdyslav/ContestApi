@@ -5,7 +5,7 @@ from pymongo import ReturnDocument
 from database.loader import db
 from database.models import Student, StudentCollection, UpdateStudent
 
-router = APIRouter(prefix="/students/")
+router = APIRouter(prefix="/students")
 student_collection = db.get_collection("students")
 
 
