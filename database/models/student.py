@@ -3,8 +3,6 @@ from typing import Annotated, List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, BeforeValidator, ConfigDict, EmailStr, Field
 
-# Represents an ObjectId field in the database.
-# It will be represented as a `str` on the model so that it can be serialized to JSON.
 PyObjectId = Annotated[str, BeforeValidator(str)]
 
 
@@ -19,17 +17,10 @@ class Student(BaseModel):
     name: str = Field(...)
     surname: str = Field(...)
     email: EmailStr = Field(...)
+
     model_config = ConfigDict(
         populate_by_name=True,
         arbitrary_types_allowed=True,
-        json_schema_extra={
-            "example": {
-                "username": "janadopoe__",
-                "name": "Jane ",
-                "surname": "Doe",
-                "email": "jdoe@example.com",
-            }
-        },
     )
 
 
@@ -43,24 +34,17 @@ class StudentCollection(BaseModel):
     students: List[Student]
 
 
-class UpdateStudentModel(BaseModel):
+class UpdateStudent(BaseModel):
     """
     A set of optional updates to be made to a document in the database.
     """
 
+    username: Optional[str] = None
     name: Optional[str] = None
+    surname: Optional[str] = None
     email: Optional[EmailStr] = None
-    course: Optional[str] = None
-    gpa: Optional[float] = None
+
     model_config = ConfigDict(
         arbitrary_types_allowed=True,
         json_encoders={ObjectId: str},
-        json_schema_extra={
-            "example": {
-                "name": "Jane Doe",
-                "email": "jdoe@example.com",
-                "course": "Experiments, Science, and Fashion in Nanophotonics",
-                "gpa": 3.0,
-            }
-        },
     )

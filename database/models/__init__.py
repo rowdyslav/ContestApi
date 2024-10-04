@@ -1,3 +1,3 @@
 """ORM модели MongoDB"""
 
-from .student import Student, StudentCollection, UpdateStudentModel
+from .student import Student, StudentCollection, UpdateStudent
