@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, HTTPException, Response, status
 from pymongo import ReturnDocument
 
 from database.loader import db
-from database.models import Student, StudentCollection, UpdateStudent
+from database.models import AddStudent, Student, StudentCollection, UpdateStudent
 
 router = APIRouter(prefix="/students")
 student_collection = db.get_collection("students")
@@ -16,7 +16,7 @@ student_collection = db.get_collection("students")
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_student(student: Student = Body(...)):
+async def add_student(student: AddStudent = Body(...)):
     """
     Insert a new student record.
 
@@ -47,7 +47,7 @@ async def list_students():
 
 
 @router.get(
-    "/{id}",
+    "/get/{id}",
     response_description="Get a single student",
     response_model=Student,
     response_model_by_alias=False,
@@ -65,7 +65,7 @@ async def get_student(id: str):
 
 
 @router.put(
-    "/{id}",
+    "/update/{id}",
     response_description="Update a student",
     response_model=Student,
     response_model_by_alias=False,
@@ -99,7 +99,7 @@ async def update_student(id: str, student: UpdateStudent = Body(...)):
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
-@router.delete("/{id}", response_description="Delete a student")
+@router.delete("/delete/{id}", response_description="Delete a student")
 async def delete_student(id: str):
     """
     Remove a single student record from the database.

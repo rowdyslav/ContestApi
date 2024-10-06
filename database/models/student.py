@@ -7,12 +7,7 @@ from ..annotations import PyObjectId
 
 
 class Student(BaseModel):
-    """Контейнер для одной записи студента."""
-
-    # Первичный ключ для StudentModel, хранящийся в экземпляре как `str`.
-    # Это будет иметь псевдоним `_id` при отправке в MongoDB,
-    # но указывается как `id` в запросах и ответах API.
-    id: Optional[PyObjectId] = Field(alias="_id", default=None)
+    id: Optional[PyObjectId] = Field(alias="_id")
     username: str = Field(...)
     name: str = Field(...)
     surname: str = Field(...)
@@ -25,19 +20,18 @@ class Student(BaseModel):
 
 
 class StudentCollection(BaseModel):
-    """
-    A container holding a list of `StudentModel` instances.
-
-    This exists because providing a top-level array in a JSON response can be a [vulnerability](https://haacked.com/archive/2009/06/25/json-hijacking.aspx/)
-    """
-
     students: List[Student]
 
 
+class AddStudent(BaseModel):
+    username: str = Field(...)
+    name: str = Field(...)
+    surname: str = Field(...)
+    email: EmailStr = Field(...)
+
+
 class UpdateStudent(BaseModel):
-    """
-    A set of optional updates to be made to a document in the database.
-    """
+    """Модель с опциональными полями, которые можно обновить в базе данных"""
 
     username: Optional[str] = None
     name: Optional[str] = None
