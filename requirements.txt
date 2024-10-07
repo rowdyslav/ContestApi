@@ -1,6 +1,7 @@
-dnspython==2.6.1
+dnspython==2.7.0
 environs==11.0.0
 fastapi==0.115.0
+fastui==0.7.0
 motor==3.6.0
 pydantic==2.9.2
-pymongo==4.9
+pymongo==4.10.1
