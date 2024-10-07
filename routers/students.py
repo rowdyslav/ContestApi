@@ -1,12 +1,13 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
+from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
 from database.loader import db
-from database.models import AddStudent, Student, StudentCollection, UpdateStudent
+from database.models import AddStudent, Student, StudentsList, UpdateStudent
 
 router = APIRouter(prefix="/students")
-student_collection = db.get_collection("students")
+student_collection: AsyncIOMotorCollection = db.get_collection("students")
 
 
 @router.post(
@@ -16,34 +17,23 @@ student_collection = db.get_collection("students")
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_student(student: AddStudent = Body(...)):
-    """
-    Insert a new student record.
-
-    A unique `id` will be created and provided in the response.
-    """
-    new_student = await student_collection.insert_one(
-        student.model_dump(by_alias=True, exclude={"id"})
-    )
+async def add_student(student: AddStudent = Body(...)) -> Student:
+    new_student = await student_collection.insert_one(student.model_dump())
     created_student = await student_collection.find_one(
         {"_id": new_student.inserted_id}
     )
-    return created_student
+    return Student.model_validate(created_student)
 
 
 @router.get(
     "/list/",
     response_description="List all students",
-    response_model=StudentCollection,
+    response_model=StudentsList,
     response_model_by_alias=False,
 )
-async def list_students():
-    """
-    List all of the student data in the database.
-
-    The response is unpaginated and limited to 1000 results.
-    """
-    return StudentCollection(students=await student_collection.find().to_list(1000))
+async def students_list() -> StudentsList:
+    "Показать 1000 записей студентов"
+    return StudentsList(students=await student_collection.find().to_list(1000))
 
 
 @router.get(
@@ -52,10 +42,7 @@ async def list_students():
     response_model=Student,
     response_model_by_alias=False,
 )
-async def get_student(id: str):
-    """
-    Get the record for a specific student, looked up by `id`.
-    """
+async def get_student(id: str) -> Student:
     if (
         student := await student_collection.find_one({"_id": ObjectId(id)})
     ) is not None:
@@ -70,7 +57,7 @@ async def get_student(id: str):
     response_model=Student,
     response_model_by_alias=False,
 )
-async def update_student(id: str, student: UpdateStudent = Body(...)):
+async def update_student(id: str, student: UpdateStudent = Body(...)) -> Student:
     """
     Update individual fields of an existing student record.
 
@@ -101,9 +88,6 @@ async def update_student(id: str, student: UpdateStudent = Body(...)):
 
 @router.delete("/delete/{id}", response_description="Delete a student")
 async def delete_student(id: str):
-    """
-    Remove a single student record from the database.
-    """
     delete_result = await student_collection.delete_one({"_id": ObjectId(id)})
 
     if delete_result.deleted_count == 1:

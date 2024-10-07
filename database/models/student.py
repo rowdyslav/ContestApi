@@ -19,7 +19,7 @@ class Student(BaseModel):
     )
 
 
-class StudentCollection(BaseModel):
+class StudentsList(BaseModel):
     students: List[Student]
 
 
