@@ -7,12 +7,12 @@ from fastui import prebuilt_html
 from fastui.components.display import DisplayLookup, DisplayMode
 from fastui.events import BackEvent, GoToEvent
 
-from database.models import Student
+from api.database.models import Student
 
 app = FastAPI()
 
 
-async def get_users():
+async def get_students():
     async with aiohttp.ClientSession() as session:
         async with session.get("http://127.0.0.1:8000/students/list/") as response:
             students_dict = await response.json()
@@ -23,24 +23,23 @@ async def get_users():
 
 
 @app.get("/api/", response_model=FastUI, response_model_exclude_none=True)
-async def users_table() -> list[AnyComponent]:
+async def students_table() -> list[AnyComponent]:
     """
-    Show a table of four users, `/api` is the endpoint the frontend will connect to
-    when a user visits `/` to fetch components to render.
+    Show a table of four students, `/api` is the endpoint the frontend will connect to
+    when a student visits `/` to fetch components to render.
     """
-    users = await get_users()
-    print(users)
+    students = await get_students()
     return [
         c.Page(  # Page provides a basic container for components
             components=[
-                c.Heading(text="Users", level=2),  # renders `<h2>Users</h2>`
+                c.Heading(text="Students", level=2),  # renders `<h2>Students</h2>`
                 c.Table(
-                    data=users,
+                    data=students,
                     # define two columns for the table
                     columns=[
-                        # the first is the users, name rendered as a link to their profile
+                        # the first is the students, name rendered as a link to their profile
                         DisplayLookup(
-                            field="name", on_click=GoToEvent(url="/user/{id}/")
+                            field="name", on_click=GoToEvent(url="/student/{id}/")
                         ),
                         # the second is the date of birth, rendered as a date
                         DisplayLookup(field="surname"),
@@ -52,24 +51,26 @@ async def users_table() -> list[AnyComponent]:
 
 
 @app.get(
-    "api/students/{student_id}/",
+    "/api/student/{student_id}/",
     response_model=FastUI,
     response_model_exclude_none=True,
 )
-async def user_profile(student_id: str) -> list[AnyComponent]:
+async def student_profile(student_id: str) -> list[AnyComponent]:
     """
-    User profile page, the frontend will fetch this when the user visits `/user/{id}/`.
+    Student profile page, the frontend will fetch this when the student visits `/student/{id}/`.
     """
+    print(1)
     try:
-        user = next(u for u in await get_users() if u.id == student_id)
+        student = next(u for u in await get_students() if u.id == student_id)
+        print(student)
     except StopIteration:
-        raise HTTPException(status_code=404, detail="User not found")
+        raise HTTPException(status_code=404, detail="Student not found")
     return [
         c.Page(
             components=[
-                c.Heading(text=user.name, level=2),
+                c.Heading(text=student.name, level=2),
                 c.Link(components=[c.Text(text="Back")], on_click=BackEvent()),
-                c.Details(data=user),
+                c.Details(data=student),
             ]
         ),
     ]
