@@ -7,7 +7,7 @@ from ..annotations import PyObjectId
 
 
 class Student(BaseModel):
-    id: Optional[PyObjectId] = Field(alias="_id")
+    id: PyObjectId = Field(alias="_id")
     username: str = Field(...)
     name: str = Field(...)
     surname: str = Field(...)
