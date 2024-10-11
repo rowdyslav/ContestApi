@@ -1,4 +1,2 @@
-from .contests import router
-from .students import router
-
-__all__ = ["router"]
+from .contests import router as contests_router
+from .students import router as students_router

@@ -1,8 +1,9 @@
 from fastapi import FastAPI
 
 from database.loader import db_lifespan
-from routers import router as routers
+from routers import contests_router, students_router
 
 app = FastAPI(lifespan=db_lifespan)
 
-app.include_router(routers)
+for router in contests_router, students_router:
+    app.include_router(router)

@@ -1,12 +1,13 @@
 from bson import ObjectId
-from database.loader import db
-from database.models import AddStudent, Student, StudentsList, UpdateStudent
 from fastapi import APIRouter, Body, HTTPException, Response, status
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
-router = APIRouter(prefix="/students")
-student_collection: AsyncIOMotorCollection = db.get_collection("students")
+from database.loader import db
+from database.models import AddStudent, Student, StudentsList, UpdateStudent
+
+router = APIRouter(prefix="/students", tags=["Students"])
+students_collection: AsyncIOMotorCollection = db.get_collection("students")
 
 
 @router.post(
@@ -17,8 +18,8 @@ student_collection: AsyncIOMotorCollection = db.get_collection("students")
     response_model_by_alias=False,
 )
 async def add_student(student: AddStudent = Body(...)) -> Student:
-    new_student = await student_collection.insert_one(student.model_dump())
-    created_student = await student_collection.find_one(
+    new_student = await students_collection.insert_one(student.model_dump())
+    created_student = await students_collection.find_one(
         {"_id": new_student.inserted_id}
     )
     return Student.model_validate(created_student)
@@ -32,7 +33,7 @@ async def add_student(student: AddStudent = Body(...)) -> Student:
 )
 async def students_list() -> StudentsList:
     "Показать 1000 записей студентов"
-    return StudentsList(students=await student_collection.find().to_list(1000))
+    return StudentsList(students=await students_collection.find().to_list(1000))
 
 
 @router.get(
@@ -43,7 +44,7 @@ async def students_list() -> StudentsList:
 )
 async def get_student(id: str) -> Student:
     if (
-        student := await student_collection.find_one({"_id": ObjectId(id)})
+        student := await students_collection.find_one({"_id": ObjectId(id)})
     ) is not None:
         return student
 
@@ -68,7 +69,7 @@ async def update_student(id: str, student: UpdateStudent = Body(...)) -> Student
     }
 
     if len(updated_fields) >= 1:
-        update_result = await student_collection.find_one_and_update(
+        update_result = await students_collection.find_one_and_update(
             {"_id": ObjectId(id)},
             {"$set": updated_fields},
             return_document=ReturnDocument.AFTER,
@@ -79,7 +80,7 @@ async def update_student(id: str, student: UpdateStudent = Body(...)) -> Student
             raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_student := await student_collection.find_one({"_id": id})) is not None:
+    if (existing_student := await students_collection.find_one({"_id": id})) is not None:
         return existing_student
 
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
@@ -87,7 +88,7 @@ async def update_student(id: str, student: UpdateStudent = Body(...)) -> Student
 
 @router.delete("/delete/{id}", response_description="Delete a student")
 async def delete_student(id: str):
-    delete_result = await student_collection.delete_one({"_id": ObjectId(id)})
+    delete_result = await students_collection.delete_one({"_id": ObjectId(id)})
 
     if delete_result.deleted_count == 1:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
