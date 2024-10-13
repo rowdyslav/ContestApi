@@ -42,9 +42,9 @@ async def contests_list() -> ContestsList:
     response_model=Contest,
     response_model_by_alias=False,
 )
-async def update_contest(id: str, student: UpdateContest = Body(...)) -> Contest:
+async def update_contest(id: str, contest: UpdateContest = Body(...)) -> Contest:
     updated_fields = {
-        k: v for k, v in student.model_dump(by_alias=True).items() if v is not None
+        k: v for k, v in contest.model_dump(by_alias=True).items() if v is not None
     }
 
     if len(updated_fields) >= 1:
@@ -66,12 +66,12 @@ async def update_contest(id: str, student: UpdateContest = Body(...)) -> Contest
 
 
 #Мб добавить отдельный поток, с удалением старых конкурсов.
-@router.delete("/delete/{id}", response_description="Delete a student")
-async def delete_student(id: str):
+@router.delete("/delete/{id}", response_description="Delete a contest")
+async def delete_contest(id: str):
     delete_result = await contests_collection.delete_one({"_id": ObjectId(id)})
 
     if delete_result.deleted_count == 1:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    raise HTTPException(status_code=404, detail=f"Student {id} not found")
+    raise HTTPException(status_code=404, detail=f"Contest {id} not found")
 
