@@ -1,13 +1,17 @@
-from typing import List
-
+from typing import List, Optional
 from pydantic import BaseModel, ConfigDict, Field
+from ..annotations import PyObjectId, Picture
 
-from ..annotations import PyObjectId
+from bson import ObjectId
 
 
 class Contest(BaseModel):
     id: PyObjectId = Field(alias="_id")
     name: str = Field(...)
+    users: list = Field(...)
+    status: bool = True
+    description: str = None
+    picture: Picture = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -21,3 +25,18 @@ class ContestsList(BaseModel):
 
 class AddContest(BaseModel):
     name: str = Field(...)
+
+
+class UpdateContest(BaseModel):
+    """Модель с опциональными полями, которые можно обновить в базе данных"""
+
+    name: Optional[str] = None
+    users: Optional[list] = None
+    status: Optional[bool] = None
+    description: Optional[str] = None
+    picture: Optional[Picture] = None
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_encoders={ObjectId: str},
+    )
