@@ -10,6 +10,21 @@ router = APIRouter(prefix="/students", tags=["Students"])
 students_collection: AsyncIOMotorCollection = db.get_collection("students")
 
 
+@router.get(
+    "/get/{id}",
+    response_description="Get a single student",
+    response_model=Student,
+    response_model_by_alias=False,
+)
+async def get_student(id: str) -> Student:
+    if (
+        student := await students_collection.find_one({"_id": ObjectId(id)})
+    ) is not None:
+        return student
+
+    raise HTTPException(status_code=404, detail=f"Student {id} not found")
+
+
 @router.post(
     "/add/",
     response_description="Add new student",
@@ -34,21 +49,6 @@ async def add_student(student: AddStudent = Body(...)) -> Student:
 async def students_list() -> StudentsList:
     "Показать 1000 записей студентов"
     return StudentsList(students=await students_collection.find().to_list(1000))
-
-
-@router.get(
-    "/get/{id}",
-    response_description="Get a single student",
-    response_model=Student,
-    response_model_by_alias=False,
-)
-async def get_student(id: str) -> Student:
-    if (
-        student := await students_collection.find_one({"_id": ObjectId(id)})
-    ) is not None:
-        return student
-
-    raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
 
 @router.put(
@@ -80,7 +80,9 @@ async def update_student(id: str, student: UpdateStudent = Body(...)) -> Student
             raise HTTPException(status_code=404, detail=f"Student {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_student := await students_collection.find_one({"_id": id})) is not None:
+    if (
+        existing_student := await students_collection.find_one({"_id": id})
+    ) is not None:
         return existing_student
 
     raise HTTPException(status_code=404, detail=f"Student {id} not found")
