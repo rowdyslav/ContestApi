@@ -10,6 +10,21 @@ router = APIRouter(prefix="/contests", tags=["Contests"])
 contests_collection: AsyncIOMotorCollection = db.get_collection("contests")
 
 
+@router.get(
+    "/get/{id}",
+    response_description="Get a single contest",
+    response_model=Contest,
+    response_model_by_alias=False,
+)
+async def get_contest(id: str) -> Contest:
+    if (
+        contest := await contests_collection.find_one({"_id": ObjectId(id)})
+    ) is not None:
+        return contest
+
+    raise HTTPException(status_code=404, detail=f"Contest {id} not found")
+
+
 @router.post(
     "/add/",
     response_description="Add new contest",
