@@ -1,8 +1,9 @@
 from typing import List, Optional
-from pydantic import BaseModel, ConfigDict, Field
-from ..annotations import PyObjectId, Picture
 
 from bson import ObjectId
+from pydantic import BaseModel, ConfigDict, Field
+
+from ..annotations import Picture, PyObjectId
 
 
 class Contest(BaseModel):
@@ -10,8 +11,8 @@ class Contest(BaseModel):
     name: str = Field(...)
     users: list = Field(...)
     status: bool = True
-    description: str = None
-    picture: Picture = None
+    description: Optional[str] = None
+    picture: Optional[Picture] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
