@@ -1,8 +1,7 @@
 from bson import ObjectId
-from fastapi import APIRouter, Body, status, HTTPException, Response
+from fastapi import APIRouter, Body, HTTPException, Response, status
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
-
 
 from database.loader import db
 from database.models import AddContest, Contest, ContestsList, UpdateContest
@@ -33,8 +32,9 @@ async def add_contest(contest: AddContest = Body(...)) -> Contest:
     response_model_by_alias=False,
 )
 async def contests_list() -> ContestsList:
-    """Показать 1000 записей студентов"""
+    """Показать 1000 записей контестов"""
     return ContestsList(contests=await contests_collection.find().to_list(1000))
+
 
 @router.put(
     "/update/{id}",
@@ -59,13 +59,15 @@ async def update_contest(id: str, contest: UpdateContest = Body(...)) -> Contest
             raise HTTPException(status_code=404, detail=f"Contest {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_contest := await contests_collection.find_one({"_id": id})) is not None:
+    if (
+        existing_contest := await contests_collection.find_one({"_id": id})
+    ) is not None:
         return existing_contest
 
     raise HTTPException(status_code=404, detail=f"Contest {id} not found")
 
 
-#Мб добавить отдельный поток, с удалением старых конкурсов.
+# TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
 @router.delete("/delete/{id}", response_description="Delete a contest")
 async def delete_contest(id: str):
     delete_result = await contests_collection.delete_one({"_id": ObjectId(id)})
@@ -74,4 +76,3 @@ async def delete_contest(id: str):
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Contest {id} not found")
-
