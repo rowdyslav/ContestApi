@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from database.loader import db_lifespan
+from database import db_lifespan
 from routers import contests_router, students_router
 
 app = FastAPI(lifespan=db_lifespan)

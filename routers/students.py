@@ -3,7 +3,7 @@ from fastapi import APIRouter, Body, HTTPException, Response, status
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
-from database.loader import db
+from database import db
 from database.models import AddStudent, Student, StudentsList, UpdateStudent
 
 router = APIRouter(prefix="/students", tags=["Students"])
