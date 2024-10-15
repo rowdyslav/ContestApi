@@ -2,16 +2,17 @@ from typing import List, Optional
 
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
+
 from database.models.student import StudentsList
 
-from ..annotations import Archive, PyObjectId, Picture
+from ..annotations import Files, Picture, PyObjectId
 
 
 class Project(BaseModel):
     id: PyObjectId = Field(alias="_id")
     name: str = Field(...)
     description: str = Field(...)
-    archive: Archive = None     # Архив обязателен, но для быстрой проверки поставил None
+    files: Files = Field(...)
     students: StudentsList = StudentsList()
     picture: Optional[Picture] = None
 
@@ -28,8 +29,8 @@ class ProjectsList(BaseModel):
 class AddProject(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
-    #Архив обязателен, но для быстрой проверки убрал
-    #archive: Archive = None
+    # Архив обязателен, но для быстрой проверки убрал
+    # archive: Archive = None
 
 
 class UpdateProject(BaseModel):
@@ -38,7 +39,7 @@ class UpdateProject(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
     students: Optional[StudentsList] = None
-    archive: Optional[Archive] = None
+    archive: Optional[Files] = None
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(
