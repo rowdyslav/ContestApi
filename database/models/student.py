@@ -20,7 +20,7 @@ class Student(BaseModel):
 
 
 class StudentsList(BaseModel):
-    students: List[Student] = []
+    value: List[Student] = []
 
 
 class AddStudent(BaseModel):

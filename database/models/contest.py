@@ -3,7 +3,7 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
-from database.models.student import StudentsList
+from database.models import StudentsList
 
 from ..annotations import Picture, PyObjectId
 
@@ -13,8 +13,8 @@ class Contest(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     alive: bool = True
+    picture: Picture = bytes()
     students: StudentsList = StudentsList()
-    picture: Optional[Picture] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -23,7 +23,7 @@ class Contest(BaseModel):
 
 
 class ContestsList(BaseModel):
-    contests: List[Contest] = []
+    value: List[Contest] = []
 
 
 class AddContest(BaseModel):

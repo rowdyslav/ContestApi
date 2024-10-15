@@ -1,5 +1,6 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
+from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
@@ -33,11 +34,11 @@ async def get_student(id: str) -> Student:
     response_model_by_alias=False,
 )
 async def add_student(student: AddStudent = Body(...)) -> Student:
-    new_student = await students_collection.insert_one(student.model_dump())
-    created_student = await students_collection.find_one(
-        {"_id": new_student.inserted_id}
-    )
-    return Student.model_validate(created_student)
+    inserted_student = await students_collection.insert_one(student.model_dump())
+    q = {"_id": inserted_student.inserted_id}
+    new_student = Student.model_validate(await students_collection.find_one(q))
+    await students_collection.find_one_and_update(q, {"$set": new_student.model_dump()})
+    return new_student
 
 
 @router.get(
@@ -48,7 +49,7 @@ async def add_student(student: AddStudent = Body(...)) -> Student:
 )
 async def students_list() -> StudentsList:
     "Показать 1000 записей студентов"
-    return StudentsList(students=await students_collection.find().to_list(1000))
+    return StudentsList(value=await students_collection.find().to_list(1000))
 
 
 @router.put(

@@ -1,5 +1,6 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
+from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
@@ -33,11 +34,11 @@ async def get_contest(id: str) -> Contest:
     response_model_by_alias=False,
 )
 async def add_contest(contest: AddContest = Body(...)) -> Contest:
-    new_contest = await contests_collection.insert_one(contest.model_dump())
-    created_contest = await contests_collection.find_one(
-        {"_id": new_contest.inserted_id}
-    )
-    return Contest.model_validate(created_contest)
+    inserted_contest = await contests_collection.insert_one(contest.model_dump())
+    q = {"_id": inserted_contest.inserted_id}
+    new_contest = Contest.model_validate(await contests_collection.find_one(q))
+    await contests_collection.find_one_and_update(q, {"$set": new_contest.model_dump()})
+    return new_contest
 
 
 @router.get(
@@ -48,7 +49,10 @@ async def add_contest(contest: AddContest = Body(...)) -> Contest:
 )
 async def contests_list() -> ContestsList:
     """Показать 1000 записей контестов"""
-    return ContestsList(contests=await contests_collection.find().to_list(1000))
+
+    a = ContestsList(value=await contests_collection.find().to_list(1000))
+    ic(a)
+    return a
 
 
 @router.put(
