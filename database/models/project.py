@@ -3,18 +3,18 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
-from database.models import ProjectsList
+from database.models.student import StudentsList
 
-from ..annotations import Picture, PyObjectId
+from ..annotations import Files, Picture, PyObjectId
 
 
-class Contest(BaseModel):
+class Project(BaseModel):
     id: PyObjectId = Field(alias="_id")
     name: str = Field(...)
     description: str = Field(...)
-    alive: bool = True
-    projects: ProjectsList = ProjectsList()
-    picture: Picture = bytes()
+    files: Files = Field(...)
+    students: StudentsList = StudentsList()
+    picture: Optional[Picture] = None
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -22,22 +22,24 @@ class Contest(BaseModel):
     )
 
 
-class ContestsList(BaseModel):
-    value: List[Contest] = []
+class ProjectsList(BaseModel):
+    projects: List[Project] = []
 
 
-class AddContest(BaseModel):
+class AddProject(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
+    # Архив обязателен, но для быстрой проверки убрал
+    # archive: Archive = None
 
 
-class UpdateContest(BaseModel):
+class UpdateProject(BaseModel):
     """Модель с опциональными полями, которые можно обновить в базе данных"""
 
     name: Optional[str] = None
     description: Optional[str] = None
-    projects: Optional[ProjectsList] = None
-    alive: Optional[bool] = None
+    students: Optional[StudentsList] = None
+    archive: Optional[Files] = None
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(
