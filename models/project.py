@@ -23,7 +23,7 @@ class Project(BaseModel):
 
 
 class ProjectsList(BaseModel):
-    projects: List[Project] = []
+    value: List[Project] = []
 
 
 class AddProject(BaseModel):
