@@ -3,7 +3,7 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
-from ..annotations import PyObjectId
+from . import PyObjectId
 
 
 class Student(BaseModel):

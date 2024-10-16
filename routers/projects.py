@@ -3,8 +3,8 @@ from fastapi import APIRouter, Body, HTTPException, Response, status
 from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
-from database.loader import db
-from database.models import AddProject, Project, ProjectsList, UpdateProject
+from database import db
+from models import AddProject, Project, ProjectsList, UpdateProject
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 project_collection: AsyncIOMotorCollection = db.get_collection("projects")
@@ -24,6 +24,7 @@ async def get_project(id: str) -> Project:
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
+
 @router.get(
     "/list/",
     response_description="List all projects",
@@ -33,6 +34,7 @@ async def get_project(id: str) -> Project:
 async def projects_list() -> ProjectsList:
     """Показать 1000 записей контестов"""
     return ProjectsList(projects=await project_collection.find().to_list(1000))
+
 
 @router.post(
     "/add/",
@@ -47,6 +49,7 @@ async def add_project(project: AddProject = Body(...)) -> Project:
         {"_id": new_project.inserted_id}
     )
     return Project.model_validate(created_project)
+
 
 @router.put(
     "/update/{id}",
@@ -71,9 +74,7 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
             raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (
-        existing_contest := await project_collection.find_one({"_id": id})
-    ) is not None:
+    if (existing_contest := await project_collection.find_one({"_id": id})) is not None:
         return existing_contest
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")

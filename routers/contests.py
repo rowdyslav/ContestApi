@@ -5,7 +5,7 @@ from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
 from database import db
-from database.models import AddContest, Contest, ContestsList, UpdateContest
+from models import AddContest, Contest, ContestsList, UpdateContest
 
 router = APIRouter(prefix="/contests", tags=["Contests"])
 contests_collection: AsyncIOMotorCollection = db.get_collection("contests")
