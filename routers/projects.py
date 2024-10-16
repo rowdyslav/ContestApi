@@ -7,7 +7,7 @@ from database import db
 from models import AddProject, Project, ProjectsList, UpdateProject
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
-project_collection: AsyncIOMotorCollection = db.get_collection("projects")
+projects_collection: AsyncIOMotorCollection = db.get_collection("projects")
 
 
 @router.get(
@@ -18,9 +18,9 @@ project_collection: AsyncIOMotorCollection = db.get_collection("projects")
 )
 async def get_project(id: str) -> Project:
     if (
-        contest := await project_collection.find_one({"_id": ObjectId(id)})
+        project := await projects_collection.find_one({"_id": ObjectId(id)})
     ) is not None:
-        return contest
+        return project
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
@@ -33,11 +33,11 @@ async def get_project(id: str) -> Project:
     response_model_by_alias=False,
 )
 async def add_project(project: AddProject = Body(...)) -> Project:
-    new_project = await project_collection.insert_one(project.model_dump())
-    created_project = await project_collection.find_one(
-        {"_id": new_project.inserted_id}
-    )
-    return Project.model_validate(created_project)
+    inserted_project = await projects_collection.insert_one(project.model_dump())
+    q = {"_id": inserted_project.inserted_id}
+    new_project = Project.model_validate(await projects_collection.find_one(q))
+    await projects_collection.find_one_and_update(q, {"$set": new_project.model_dump()})
+    return new_project
 
 
 @router.get(
@@ -47,13 +47,13 @@ async def add_project(project: AddProject = Body(...)) -> Project:
     response_model_by_alias=False,
 )
 async def projects_list() -> ProjectsList:
-    """Показать 1000 записей контестов"""
-    return ProjectsList(projects=await project_collection.find().to_list(1000))
+    """Показать 1000 записей проектов"""
+    return ProjectsList(value=await projects_collection.find().to_list(1000))
 
 
 @router.put(
     "/update/{id}",
-    response_description="Update a contest",
+    response_description="Update a project",
     response_model=Project,
     response_model_by_alias=False,
 )
@@ -63,7 +63,7 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
     }
 
     if len(updated_fields) >= 1:
-        update_result = await project_collection.find_one_and_update(
+        update_result = await projects_collection.find_one_and_update(
             {"_id": ObjectId(id)},
             {"$set": updated_fields},
             return_document=ReturnDocument.AFTER,
@@ -74,8 +74,10 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
             raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_contest := await project_collection.find_one({"_id": id})) is not None:
-        return existing_contest
+    if (
+        existing_project := await projects_collection.find_one({"_id": id})
+    ) is not None:
+        return existing_project
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
@@ -83,7 +85,7 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
 # TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
 @router.delete("/delete/{id}", response_description="Delete a project")
 async def delete_project(id: str):
-    delete_result = await project_collection.delete_one({"_id": ObjectId(id)})
+    delete_result = await projects_collection.delete_one({"_id": ObjectId(id)})
 
     if delete_result.deleted_count == 1:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
