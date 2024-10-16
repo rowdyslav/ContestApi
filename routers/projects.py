@@ -25,17 +25,6 @@ async def get_project(id: str) -> Project:
     raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
 
-@router.get(
-    "/list/",
-    response_description="List all projects",
-    response_model=ProjectsList,
-    response_model_by_alias=False,
-)
-async def projects_list() -> ProjectsList:
-    """Показать 1000 записей контестов"""
-    return ProjectsList(projects=await project_collection.find().to_list(1000))
-
-
 @router.post(
     "/add/",
     response_description="Add new project",
@@ -49,6 +38,17 @@ async def add_project(project: AddProject = Body(...)) -> Project:
         {"_id": new_project.inserted_id}
     )
     return Project.model_validate(created_project)
+
+
+@router.get(
+    "/list/",
+    response_description="List all projects",
+    response_model=ProjectsList,
+    response_model_by_alias=False,
+)
+async def projects_list() -> ProjectsList:
+    """Показать 1000 записей контестов"""
+    return ProjectsList(projects=await project_collection.find().to_list(1000))
 
 
 @router.put(
