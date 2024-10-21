@@ -1,0 +1,95 @@
+from bson import ObjectId
+from fastapi import APIRouter, Body, HTTPException, Response, status
+from icecream import ic
+from motor.motor_asyncio import AsyncIOMotorCollection
+from pymongo import ReturnDocument
+
+from database import db
+from models import AddUser, UpdateUser, User, UsersList
+
+router = APIRouter(prefix="/Users", tags=["Users"])
+users_collection: AsyncIOMotorCollection = db.get_collection("Users")
+
+
+@router.get(
+    "/get/{id}",
+    response_description="Get a single User",
+    response_model=User,
+    response_model_by_alias=False,
+)
+async def get_User(id: str) -> User:
+    if (User := await users_collection.find_one({"_id": ObjectId(id)})) is not None:
+        return User
+
+    raise HTTPException(status_code=404, detail=f"User {id} not found")
+
+
+@router.post(
+    "/add/",
+    response_description="Add new User",
+    response_model=User,
+    status_code=status.HTTP_201_CREATED,
+    response_model_by_alias=False,
+)
+async def add_user(user: AddUser = Body(...)) -> User:
+    inserted_user = await users_collection.insert_one(user.model_dump())
+    q = {"_id": inserted_user.inserted_id}
+    new_user = User.model_validate(await users_collection.find_one(q))
+    await users_collection.find_one_and_update(q, {"$set": new_user.model_dump()})
+    return new_user
+
+
+@router.get(
+    "/list/",
+    response_description="List all Users",
+    response_model=UsersList,
+    response_model_by_alias=False,
+)
+async def Users_list() -> UsersList:
+    "Показать 1000 записей студентов"
+    return UsersList(value=await users_collection.find().to_list(1000))
+
+
+@router.put(
+    "/update/{id}",
+    response_description="Update a User",
+    response_model=User,
+    response_model_by_alias=False,
+)
+async def update_User(id: str, User: UpdateUser = Body(...)) -> User:
+    """
+    Update individual fields of an existing User record.
+
+    Only the provided fields will be updated.
+    Any missing or `null` fields will be ignored.
+    """
+    updated_fields = {
+        k: v for k, v in User.model_dump(by_alias=True).items() if v is not None
+    }
+
+    if len(updated_fields) >= 1:
+        update_result = await users_collection.find_one_and_update(
+            {"_id": ObjectId(id)},
+            {"$set": updated_fields},
+            return_document=ReturnDocument.AFTER,
+        )
+        if update_result is not None:
+            return update_result
+        else:
+            raise HTTPException(status_code=404, detail=f"User {id} not found")
+
+    # The update is empty, but we should still return the matching document:
+    if (existing_User := await users_collection.find_one({"_id": id})) is not None:
+        return existing_User
+
+    raise HTTPException(status_code=404, detail=f"User {id} not found")
+
+
+@router.delete("/delete/{id}", response_description="Delete a User")
+async def delete_User(id: str):
+    delete_result = await users_collection.delete_one({"_id": ObjectId(id)})
+
+    if delete_result.deleted_count == 1:
+        return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+    raise HTTPException(status_code=404, detail=f"User {id} not found")

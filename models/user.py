@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 from . import PyObjectId
 
 
-class Student(BaseModel):
+class User(BaseModel):
     id: PyObjectId = Field(alias="_id")
     username: str = Field(...)
     name: str = Field(...)
@@ -19,18 +19,18 @@ class Student(BaseModel):
     )
 
 
-class StudentsList(BaseModel):
-    value: List[Student] = []
+class UsersList(BaseModel):
+    value: List[User] = []
 
 
-class AddStudent(BaseModel):
+class AddUser(BaseModel):
     username: str = Field(...)
     name: str = Field(...)
     surname: str = Field(...)
     email: EmailStr = Field(...)
 
 
-class UpdateStudent(BaseModel):
+class UpdateUser(BaseModel):
     """Модель с опциональными полями, которые можно обновить в базе данных"""
 
     username: Optional[str] = None

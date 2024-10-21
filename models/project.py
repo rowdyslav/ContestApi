@@ -3,7 +3,7 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
-from models.student import StudentsList
+from models.user import UsersList
 
 from . import Files, Picture, PyObjectId
 
@@ -13,7 +13,7 @@ class Project(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     files: Files = Field(...)
-    students: StudentsList = StudentsList()
+    Users: UsersList = UsersList()
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(
@@ -38,7 +38,7 @@ class UpdateProject(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    students: Optional[StudentsList] = None
+    Users: Optional[UsersList] = None
     archive: Optional[Files] = None
     picture: Optional[Picture] = None
 
