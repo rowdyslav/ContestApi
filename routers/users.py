@@ -56,7 +56,7 @@ async def users_list() -> UsersList:
     response_model=User,
     response_model_by_alias=False,
 )
-async def update_user(id: str, User: UpdateUser = Body(...)) -> User:
+async def update_user(id: str, user: UpdateUser = Body(...)) -> User:
     """
     Update individual fields of an existing User record.
 
@@ -64,7 +64,7 @@ async def update_user(id: str, User: UpdateUser = Body(...)) -> User:
     Any missing or `null` fields will be ignored.
     """
     updated_fields = {
-        k: v for k, v in User.model_dump(by_alias=True).items() if v is not None
+        k: v for k, v in user.model_dump(by_alias=True).items() if v is not None
     }
 
     if len(updated_fields) >= 1:
