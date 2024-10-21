@@ -17,7 +17,7 @@ users_collection: AsyncIOMotorCollection = db.get_collection("Users")
     response_model=User,
     response_model_by_alias=False,
 )
-async def get_User(id: str) -> User:
+async def get_user(id: str) -> User:
     if (User := await users_collection.find_one({"_id": ObjectId(id)})) is not None:
         return User
 
@@ -45,7 +45,7 @@ async def add_user(user: AddUser = Body(...)) -> User:
     response_model=UsersList,
     response_model_by_alias=False,
 )
-async def Users_list() -> UsersList:
+async def users_list() -> UsersList:
     "Показать 1000 записей студентов"
     return UsersList(value=await users_collection.find().to_list(1000))
 
@@ -56,7 +56,7 @@ async def Users_list() -> UsersList:
     response_model=User,
     response_model_by_alias=False,
 )
-async def update_User(id: str, User: UpdateUser = Body(...)) -> User:
+async def update_user(id: str, User: UpdateUser = Body(...)) -> User:
     """
     Update individual fields of an existing User record.
 
@@ -86,7 +86,7 @@ async def update_User(id: str, User: UpdateUser = Body(...)) -> User:
 
 
 @router.delete("/delete/{id}", response_description="Delete a User")
-async def delete_User(id: str):
+async def delete_user(id: str):
     delete_result = await users_collection.delete_one({"_id": ObjectId(id)})
 
     if delete_result.deleted_count == 1:
