@@ -49,10 +49,7 @@ async def add_contest(contest: AddContest = Body(...)) -> Contest:
 )
 async def contests_list() -> ContestsList:
     """Показать 1000 записей контестов"""
-
-    a = ContestsList(value=await contests_collection.find().to_list(1000))
-    ic(a)
-    return a
+    return ContestsList(value=await contests_collection.find().to_list(1000))
 
 
 @router.put(
