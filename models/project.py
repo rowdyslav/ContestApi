@@ -13,8 +13,9 @@ class Project(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     files: Files = Field(...)
-    Users: UsersList = UsersList()
-    picture: Optional[Picture] = None
+    users: UsersList = UsersList()
+    picture: Picture = bytes()
+    boosts: int = 0
 
     model_config = ConfigDict(
         populate_by_name=True,
