@@ -1,15 +1,12 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
-from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
-from database import db
 from models import AddProject, Project, ProjectsList, UpdateProject, User
 
-router = APIRouter(prefix="/projects", tags=["Projects"])
+from . import projects_collection, users_collection
 
-users_collection: AsyncIOMotorCollection = db.get_collection("users")
-projects_collection: AsyncIOMotorCollection = db.get_collection("projects")
+router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
 @router.get(
@@ -91,14 +88,16 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
     response_model_by_alias=False,
 )
 async def boost_project(id: str, user: User):
-    if not bool(users_collection.find_one({"_id": user.id})):
+    if not bool(
+        await users_collection.find_one({"_id": user.id})
+    ):  # FIXME: Не находит юзера по какой то причине
         raise HTTPException(status_code=404, detail=f"User {user.id} not found")
 
     project = Project.model_validate(projects_collection.find_one({"_id": id}))
     if user.id in (member.id for member in project.users.value):
         raise HTTPException(
             status_code=409,
-            detail=f"User {user.id} is member of Project {id}. Cannot boost your own project ",
+            detail=f"User {user.id} is member of Project {id}. Cannot boost your own project",
         )
 
     update_result = await projects_collection.find_one_and_update(

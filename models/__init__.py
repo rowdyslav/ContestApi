@@ -7,7 +7,8 @@ from PIL import Image
 from pydantic import BeforeValidator
 
 PyObjectId = Annotated[str, BeforeValidator(str)]
-Picture = Annotated[bytes, BeforeValidator(lambda f: Image.open(f).verify())]
+# Picture = Annotated[bytes, BeforeValidator(lambda f: Image.open(f).verify())]
+Picture = Annotated[bytes, BeforeValidator(bytes)]
 Files = Annotated[bytes, File]
 
 from .contest import AddContest, Contest, ContestsList, UpdateContest

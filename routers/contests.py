@@ -1,14 +1,13 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
 from icecream import ic
-from motor.motor_asyncio import AsyncIOMotorCollection
 from pymongo import ReturnDocument
 
-from database import db
 from models import AddContest, Contest, ContestsList, UpdateContest
 
+from . import contests_collection
+
 router = APIRouter(prefix="/contests", tags=["Contests"])
-contests_collection: AsyncIOMotorCollection = db.get_collection("contests")
 
 
 @router.get(
