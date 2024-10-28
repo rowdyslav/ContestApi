@@ -96,7 +96,7 @@ async def boost_project(id: str, user: User) -> int:
     project = Project.model_validate(
         await projects_collection.find_one({"_id": ObjectId(id)})
     )
-    if user.id in (member.id for member in project.users.value):
+    if user.id in (member_id for member_id in project.users_ids.value):
         raise HTTPException(
             status_code=409,
             detail=f"User {user.id} is member of Project {id}. Cannot boost your own project",

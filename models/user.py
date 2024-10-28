@@ -23,6 +23,10 @@ class UsersList(BaseModel):
     value: List[User] = []
 
 
+class UsersIdsList(BaseModel):
+    value: List[PyObjectId] = []
+
+
 class AddUser(BaseModel):
     username: str = Field(...)
     name: str = Field(...)

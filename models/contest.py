@@ -3,7 +3,7 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
-from models.project import ProjectsList
+from models.project import ProjectsIdsList
 
 from . import Picture, PyObjectId
 
@@ -13,8 +13,7 @@ class Contest(BaseModel):
     name: str = Field(...)
     description: str = Field(...)
     alive: bool = True
-    projects: ProjectsList = ProjectsList()
-    picture: Picture = bytes()
+    projects_ids: ProjectsIdsList = ProjectsIdsList()
 
     model_config = ConfigDict(
         populate_by_name=True,
@@ -24,6 +23,10 @@ class Contest(BaseModel):
 
 class ContestsList(BaseModel):
     value: List[Contest] = []
+
+
+class ContestsIdsList(BaseModel):
+    value: List[PyObjectId] = []
 
 
 class AddContest(BaseModel):
@@ -36,9 +39,8 @@ class UpdateContest(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    projects: Optional[ProjectsList] = None
+    projects_ids: Optional[ProjectsIdsList] = None
     alive: Optional[bool] = None
-    picture: Optional[Picture] = None
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

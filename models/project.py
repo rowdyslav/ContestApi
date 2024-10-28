@@ -3,17 +3,16 @@ from typing import List, Optional
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, Field
 
-from models.user import UsersList
+from models.user import UsersIdsList
 
-from . import Files, Picture, PyObjectId
+from . import Picture, PyObjectId
 
 
 class Project(BaseModel):
     id: PyObjectId = Field(alias="_id")
     name: str = Field(...)
     description: str = Field(...)
-    files: Files = Field(...)
-    users: UsersList = UsersList()
+    users_ids: UsersIdsList = UsersIdsList()
     picture: Picture = bytes()
     boosts: int = 0
 
@@ -25,6 +24,10 @@ class Project(BaseModel):
 
 class ProjectsList(BaseModel):
     value: List[Project] = []
+
+
+class ProjectsIdsList(BaseModel):
+    value: List[PyObjectId] = []
 
 
 class AddProject(BaseModel):
@@ -39,8 +42,7 @@ class UpdateProject(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    Users: Optional[UsersList] = None
-    archive: Optional[Files] = None
+    users_ids: Optional[UsersIdsList] = None
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(
