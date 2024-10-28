@@ -84,16 +84,18 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
 @router.put(
     "/boost/{id}",
     response_description="Забустить проект",
-    response_model=Project,
-    response_model_by_alias=False,
 )
-async def boost_project(id: str, user: User):
-    if not bool(
-        await users_collection.find_one({"_id": user.id})
-    ):  # FIXME: Не находит юзера по какой то причине
-        raise HTTPException(status_code=404, detail=f"User {user.id} not found")
+async def boost_project(id: str, user: User) -> int:
+    from icecream import ic
 
-    project = Project.model_validate(projects_collection.find_one({"_id": id}))
+    if not bool(
+        user == User.model_validate(await users_collection.find_one(ObjectId(user.id)))
+    ):
+        raise HTTPException(status_code=404, detail=f"User not found")
+
+    project = Project.model_validate(
+        await projects_collection.find_one({"_id": ObjectId(id)})
+    )
     if user.id in (member.id for member in project.users.value):
         raise HTTPException(
             status_code=409,
@@ -106,7 +108,7 @@ async def boost_project(id: str, user: User):
         return_document=ReturnDocument.AFTER,
     )
     if update_result is not None:
-        return update_result
+        return update_result["boosts"]
     else:
         raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
