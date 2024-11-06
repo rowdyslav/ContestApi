@@ -32,10 +32,14 @@ async def get_project(id: str) -> Project:
     response_model_by_alias=False,
 )
 async def add_project(project: AddProject = Body(...)) -> Project:
-    inserted_project = await projects_collection.insert_one(project.model_dump())
+    inserted_project = await projects_collection.insert_one(
+        project.model_dump(by_alias=True)
+    )
     q = {"_id": inserted_project.inserted_id}
     new_project = Project.model_validate(await projects_collection.find_one(q))
-    await projects_collection.find_one_and_update(q, {"$set": new_project.model_dump()})
+    await projects_collection.find_one_and_update(
+        q, {"$set": new_project.model_dump(exclude={"id"})}
+    )
     return new_project
 
 

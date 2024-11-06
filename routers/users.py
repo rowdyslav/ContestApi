@@ -31,10 +31,12 @@ async def get_user(id: str) -> User:
     response_model_by_alias=False,
 )
 async def add_user(user: AddUser = Body(...)) -> User:
-    inserted_user = await users_collection.insert_one(user.model_dump())
+    inserted_user = await users_collection.insert_one(user.model_dump(by_alias=True))
     q = {"_id": inserted_user.inserted_id}
     new_user = User.model_validate(await users_collection.find_one(q))
-    await users_collection.find_one_and_update(q, {"$set": new_user.model_dump()})
+    await users_collection.find_one_and_update(
+        q, {"$set": new_user.model_dump(exclude={"id"})}
+    )
     return new_user
 
 

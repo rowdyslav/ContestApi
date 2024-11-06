@@ -33,10 +33,14 @@ async def get_contest(id: str) -> Contest:
     response_model_by_alias=False,
 )
 async def add_contest(contest: AddContest = Body(...)) -> Contest:
-    inserted_contest = await contests_collection.insert_one(contest.model_dump())
+    inserted_contest = await contests_collection.insert_one(
+        contest.model_dump(by_alias=True)
+    )
     q = {"_id": inserted_contest.inserted_id}
     new_contest = Contest.model_validate(await contests_collection.find_one(q))
-    await contests_collection.find_one_and_update(q, {"$set": new_contest.model_dump()})
+    await contests_collection.find_one_and_update(
+        q, {"$set": new_contest.model_dump(exclude={"id"})}
+    )
     return new_contest
 
 
