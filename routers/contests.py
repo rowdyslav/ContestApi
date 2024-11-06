@@ -1,13 +1,13 @@
 from bson import ObjectId
 from fastapi import APIRouter, Body, HTTPException, Response, status
-from motor.motor_asyncio import AsyncIOMotorCollection
+from icecream import ic
 from pymongo import ReturnDocument
 
-from database.loader import db
-from database.models import AddContest, Contest, ContestsList, UpdateContest
+from models import AddContest, Contest, ContestsList, UpdateContest
+
+from . import contests_collection
 
 router = APIRouter(prefix="/contests", tags=["Contests"])
-contests_collection: AsyncIOMotorCollection = db.get_collection("contests")
 
 
 @router.get(
@@ -33,11 +33,15 @@ async def get_contest(id: str) -> Contest:
     response_model_by_alias=False,
 )
 async def add_contest(contest: AddContest = Body(...)) -> Contest:
-    new_contest = await contests_collection.insert_one(contest.model_dump())
-    created_contest = await contests_collection.find_one(
-        {"_id": new_contest.inserted_id}
+    inserted_contest = await contests_collection.insert_one(
+        contest.model_dump(by_alias=True)
     )
-    return Contest.model_validate(created_contest)
+    q = {"_id": inserted_contest.inserted_id}
+    new_contest = Contest.model_validate(await contests_collection.find_one(q))
+    await contests_collection.find_one_and_update(
+        q, {"$set": new_contest.model_dump(exclude={"id"})}
+    )
+    return new_contest
 
 
 @router.get(
@@ -48,7 +52,7 @@ async def add_contest(contest: AddContest = Body(...)) -> Contest:
 )
 async def contests_list() -> ContestsList:
     """Показать 1000 записей контестов"""
-    return ContestsList(contests=await contests_collection.find().to_list(1000))
+    return ContestsList(value=await contests_collection.find().to_list(1000))
 
 
 @router.put(
