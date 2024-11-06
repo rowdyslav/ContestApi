@@ -60,10 +60,15 @@ async def projects_list() -> ProjectsList:
     response_model=ProjectsList,
     response_model_by_alias=False,
 )
-async def sort_projects_list_boost() -> ProjectsList:
-    projects = ProjectsList(value=await projects_collection.find().to_list(1000))
-    projects.value = sorted(projects.value, key=lambda obj: obj.boosts, reverse=True)
-    return projects
+async def projects_list_sorted() -> ProjectsList:
+    """Возвращает список проектов, отсортированных по количеству бустов"""
+    return ProjectsList(
+        value=sorted(
+            await projects_collection.find().to_list(1000),
+            key=lambda project: project.boosts,
+            reverse=True,
+        )
+    )
 
 
 @router.put(
