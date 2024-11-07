@@ -30,7 +30,7 @@ async def get_user(id: str) -> User:
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_user(user: AddUser = Body(...)) -> User:
+async def add_user(user: AddUser) -> User:
     inserted_user = await users_collection.insert_one(user.model_dump(by_alias=True))
     q = {"_id": inserted_user.inserted_id}
     new_user = User.model_validate(await users_collection.find_one(q))
@@ -57,7 +57,7 @@ async def users_list() -> UsersList:
     response_model=User,
     response_model_by_alias=False,
 )
-async def update_user(id: str, user: UpdateUser = Body(...)) -> User:
+async def update_user(id: str, user: UpdateUser) -> User:
     """
     Update individual fields of an existing User record.
 

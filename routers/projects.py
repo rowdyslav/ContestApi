@@ -31,7 +31,7 @@ async def get_project(id: str) -> Project:
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_project(project: AddProject = Body(...)) -> Project:
+async def add_project(project: AddProject) -> Project:
     inserted_project = await projects_collection.insert_one(
         project.model_dump(by_alias=True)
     )
@@ -77,7 +77,7 @@ async def projects_list_sorted() -> ProjectsList:
     response_model=Project,
     response_model_by_alias=False,
 )
-async def update_project(id: str, project: UpdateProject = Body(...)) -> Project:
+async def update_project(id: str, project: UpdateProject) -> Project:
     updated_fields = {
         k: v for k, v in project.model_dump(by_alias=True).items() if v is not None
     }
@@ -107,8 +107,6 @@ async def update_project(id: str, project: UpdateProject = Body(...)) -> Project
     response_description="Забустить проект",
 )
 async def boost_project(id: str, user: User) -> int:
-    from icecream import ic
-
     if not bool(
         user == User.model_validate(await users_collection.find_one(ObjectId(user.id)))
     ):

@@ -32,7 +32,7 @@ async def get_contest(id: str) -> Contest:
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_contest(contest: AddContest = Body(...)) -> Contest:
+async def add_contest(contest: AddContest) -> Contest:
     inserted_contest = await contests_collection.insert_one(
         contest.model_dump(by_alias=True)
     )
@@ -61,7 +61,7 @@ async def contests_list() -> ContestsList:
     response_model=Contest,
     response_model_by_alias=False,
 )
-async def update_contest(id: str, contest: UpdateContest = Body(...)) -> Contest:
+async def update_contest(id: str, contest: UpdateContest) -> Contest:
     updated_fields = {
         k: v for k, v in contest.model_dump(by_alias=True).items() if v is not None
     }
