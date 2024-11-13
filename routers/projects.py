@@ -56,16 +56,17 @@ async def projects_list() -> ProjectsList:
 
 @router.get(
     "/list/boosts",
-    response_description="Sort list projects boost",
+    response_description="List all projects sorted by boosts",
     response_model=ProjectsList,
     response_model_by_alias=False,
 )
 async def projects_list_sorted() -> ProjectsList:
     """Возвращает список проектов, отсортированных по количеству бустов"""
+    sort_key = lambda project: project["boosts"]
     return ProjectsList(
         value=sorted(
             await projects_collection.find().to_list(1000),
-            key=lambda project: project.boosts,
+            key=sort_key,
             reverse=True,
         )
     )
