@@ -60,7 +60,7 @@ async def projects_list() -> ProjectsList:
     response_model=ProjectsList,
     response_model_by_alias=False,
 )
-async def projects_list_sorted() -> ProjectsList:
+async def projects_list_boosts() -> ProjectsList:
     """Возвращает список проектов, отсортированных по количеству бустов"""
     sort_key = lambda project: project["boosts"]
     return ProjectsList(
