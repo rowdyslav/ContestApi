@@ -1,6 +1,5 @@
 from bson import ObjectId
-from fastapi import APIRouter, Body, HTTPException, Response, status
-from icecream import ic
+from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
 from models import AddUser, UpdateUser, User, UsersList
@@ -17,8 +16,8 @@ router = APIRouter(prefix="/users", tags=["Users"])
     response_model_by_alias=False,
 )
 async def get_user(id: str) -> User:
-    if (User := await users_collection.find_one({"_id": ObjectId(id)})) is not None:
-        return User
+    if (user := await users_collection.find_one({"_id": ObjectId(id)})) is not None:
+        return user
 
     raise HTTPException(status_code=404, detail=f"User {id} not found")
 
@@ -80,8 +79,8 @@ async def update_user(id: str, user: UpdateUser) -> User:
             raise HTTPException(status_code=404, detail=f"User {id} not found")
 
     # The update is empty, but we should still return the matching document:
-    if (existing_User := await users_collection.find_one({"_id": id})) is not None:
-        return existing_User
+    if (existing_user := await users_collection.find_one({"_id": id})) is not None:
+        return existing_user
 
     raise HTTPException(status_code=404, detail=f"User {id} not found")
 

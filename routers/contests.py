@@ -1,6 +1,5 @@
 from bson import ObjectId
-from fastapi import APIRouter, Body, HTTPException, Response, status
-from icecream import ic
+from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
 from models import AddContest, Contest, ContestsList, UpdateContest
