@@ -1,10 +1,10 @@
 # type: ignore
 from contextlib import asynccontextmanager
-from logging import info
 
 import dns.resolver
 from environs import Env
 from fastapi import FastAPI
+from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorClient
 
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
@@ -17,14 +17,11 @@ db = client["ContestApi"]
 
 
 @asynccontextmanager
-async def db_lifespan(app: FastAPI):
-    app.mongodb_client = client
-    app.database = db
-    ping_response = await app.database.command("ping")
+async def db_lifespan(_: FastAPI):
+    ping_response = await db.command("ping")
     if int(ping_response["ok"]) != 1:
         raise Exception("Problem connecting to database cluster.")
     else:
-        info("Connected to database cluster.")
+        ic("Connected to database cluster.")
     yield
-
-    app.mongodb_client.close()
+    client.close()
