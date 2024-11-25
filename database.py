@@ -2,10 +2,13 @@
 from contextlib import asynccontextmanager
 
 import dns.resolver
+from beanie import init_beanie
 from environs import Env
 from fastapi import FastAPI
 from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorClient
+
+from models import Contest, Project, User
 
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
 dns.resolver.default_resolver.nameservers = ["8.8.8.8"]
@@ -23,5 +26,6 @@ async def db_lifespan(_: FastAPI):
         raise Exception("Problem connecting to database cluster.")
     else:
         ic("Connected to database cluster.")
+    await init_beanie(database=db, document_models=[User, Project, Contest])
     yield
     client.close()

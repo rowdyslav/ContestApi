@@ -1,38 +1,29 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
+from beanie import Document, Link
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, BeforeValidator, ConfigDict
 
-from models.user import UsersIdsList
+from models.user import User
 
-from . import Picture, PyObjectId
+Picture = Annotated[bytes, BeforeValidator(bytes)]
+UsersList = List[Link[User]]
 
 
-class Project(BaseModel):
-    id: PyObjectId = Field(alias="_id")
-    name: str = Field(...)
-    description: str = Field(...)
-    users_ids: UsersIdsList = UsersIdsList()
+class Project(Document):
+    name: str
+    description: str
+    users: UsersList = []
     picture: Picture = bytes()
     boosts: int = 0
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class ProjectsList(BaseModel):
-    value: List[Project] = []
-
-
-class ProjectsIdsList(BaseModel):
-    value: List[PyObjectId] = []
+    class Settings:
+        name = "projects"
 
 
 class AddProject(BaseModel):
-    name: str = Field(...)
-    description: str = Field(...)
+    name: str
+    description: str
     # Архив обязателен, но для быстрой проверки убрал
     # archive: Archive = None
 
@@ -42,7 +33,7 @@ class UpdateProject(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    users_ids: Optional[UsersIdsList] = None
+    users: Optional[UsersList] = None
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(

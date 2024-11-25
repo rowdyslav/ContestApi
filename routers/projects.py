@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
-from models import AddProject, Project, ProjectsList, UpdateProject, User
+from models import AddProject, Project, UpdateProject, User
 
 from . import projects_collection, users_collection
 
@@ -46,29 +46,25 @@ async def add_project(project: AddProject) -> Project:
 @router.get(
     "/list/",
     response_description="List all projects",
-    response_model=ProjectsList,
     response_model_by_alias=False,
 )
-async def projects_list() -> ProjectsList:
+async def projects_list():
     """Показать 1000 записей проектов"""
-    return ProjectsList(value=await projects_collection.find().to_list(1000))
+    return await projects_collection.find().to_list(1000)
 
 
 @router.get(
     "/list/boosts",
     response_description="List all projects sorted by boosts",
-    response_model=ProjectsList,
     response_model_by_alias=False,
 )
-async def projects_list_boosts() -> ProjectsList:
+async def projects_list_boosts():
     """Возвращает список проектов, отсортированных по количеству бустов"""
     sort_key = lambda project: project["boosts"]
-    return ProjectsList(
-        value=sorted(
-            await projects_collection.find().to_list(1000),
-            key=sort_key,
-            reverse=True,
-        )
+    return sorted(
+        await projects_collection.find().to_list(1000),
+        key=sort_key,
+        reverse=True,
     )
 
 

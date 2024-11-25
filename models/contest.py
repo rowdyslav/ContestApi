@@ -1,37 +1,27 @@
 from typing import List, Optional
 
+from beanie import Document, Link
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict
 
-from models.project import ProjectsIdsList
+from models.project import Project
 
-from . import Picture, PyObjectId
+ProjectsList = List[Link[Project]]
 
 
-class Contest(BaseModel):
-    id: PyObjectId = Field(alias="_id")
-    name: str = Field(...)
-    description: str = Field(...)
+class Contest(Document):
+    name: str
+    description: str
     alive: bool = True
-    projects_ids: ProjectsIdsList = ProjectsIdsList()
+    projects_ids: ProjectsList = []
 
-    model_config = ConfigDict(
-        populate_by_name=True,
-        arbitrary_types_allowed=True,
-    )
-
-
-class ContestsList(BaseModel):
-    value: List[Contest] = []
-
-
-class ContestsIdsList(BaseModel):
-    value: List[PyObjectId] = []
+    class Settings:
+        name = "contests"
 
 
 class AddContest(BaseModel):
-    name: str = Field(...)
-    description: str = Field(...)
+    name: str
+    description: str
 
 
 class UpdateContest(BaseModel):
@@ -39,7 +29,7 @@ class UpdateContest(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    projects_ids: Optional[ProjectsIdsList] = None
+    projects_ids: Optional[ProjectsList] = None
     alive: Optional[bool] = None
 
     model_config = ConfigDict(

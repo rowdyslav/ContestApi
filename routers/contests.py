@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
-from models import AddContest, Contest, ContestsList, UpdateContest
+from models import AddContest, Contest, UpdateContest
 
 from . import contests_collection
 
@@ -46,12 +46,11 @@ async def add_contest(contest: AddContest) -> Contest:
 @router.get(
     "/list/",
     response_description="List all contests",
-    response_model=ContestsList,
     response_model_by_alias=False,
 )
-async def contests_list() -> ContestsList:
+async def contests_list():
     """Показать 1000 записей контестов"""
-    return ContestsList(value=await contests_collection.find().to_list(1000))
+    return await contests_collection.find().to_list(1000)
 
 
 @router.put(

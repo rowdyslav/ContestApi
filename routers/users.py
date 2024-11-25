@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
-from models import AddUser, UpdateUser, User, UsersList
+from models import AddUser, UpdateUser, User
 
 from . import users_collection
 
@@ -42,12 +42,11 @@ async def add_user(user: AddUser) -> User:
 @router.get(
     "/list/",
     response_description="List all Users",
-    response_model=UsersList,
     response_model_by_alias=False,
 )
-async def users_list() -> UsersList:
+async def users_list():
     "Показать 1000 записей студентов"
-    return UsersList(value=await users_collection.find().to_list(1000))
+    return await users_collection.find().to_list(1000)
 
 
 @router.put(
