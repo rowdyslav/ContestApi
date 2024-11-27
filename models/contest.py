@@ -13,7 +13,7 @@ class Contest(Document):
     name: str
     description: str
     alive: bool = True
-    projects_ids: ProjectsList = []
+    projects: ProjectsList = []
 
     class Settings:
         name = "contests"
@@ -29,7 +29,7 @@ class UpdateContest(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    projects_ids: Optional[ProjectsList] = None
+    projects: Optional[ProjectsList] = None
     alive: Optional[bool] = None
 
     model_config = ConfigDict(

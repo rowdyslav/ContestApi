@@ -32,15 +32,7 @@ async def get_project(id: str) -> Project:
     response_model_by_alias=False,
 )
 async def add_project(project: AddProject) -> Project:
-    inserted_project = await projects_collection.insert_one(
-        project.model_dump(by_alias=True)
-    )
-    q = {"_id": inserted_project.inserted_id}
-    new_project = Project.model_validate(await projects_collection.find_one(q))
-    await projects_collection.find_one_and_update(
-        q, {"$set": new_project.model_dump(exclude={"id"})}
-    )
-    return new_project
+    return await Project(**project.model_dump()).insert()
 
 
 @router.get(
@@ -109,9 +101,7 @@ async def boost_project(id: str, user: User) -> int:
     ):
         raise HTTPException(status_code=404, detail=f"User not found")
 
-    project = Project.model_validate(
-        await projects_collection.find_one({"_id": ObjectId(id)})
-    )
+    project = Project.model_validate(Project.find_one({"_id": ObjectId(id)}))
     if user.id in (member_id for member_id in project.users_ids.value):
         raise HTTPException(
             status_code=409,

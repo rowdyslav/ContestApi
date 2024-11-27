@@ -32,15 +32,7 @@ async def get_contest(id: str) -> Contest:
     response_model_by_alias=False,
 )
 async def add_contest(contest: AddContest) -> Contest:
-    inserted_contest = await contests_collection.insert_one(
-        contest.model_dump(by_alias=True)
-    )
-    q = {"_id": inserted_contest.inserted_id}
-    new_contest = Contest.model_validate(await contests_collection.find_one(q))
-    await contests_collection.find_one_and_update(
-        q, {"$set": new_contest.model_dump(exclude={"id"})}
-    )
-    return new_contest
+    return await Contest(**contest.model_dump()).insert()
 
 
 @router.get(
@@ -50,7 +42,7 @@ async def add_contest(contest: AddContest) -> Contest:
 )
 async def contests_list():
     """Показать 1000 записей контестов"""
-    return await contests_collection.find().to_list(1000)
+    return await Contest.find().to_list(1000)
 
 
 @router.put(
@@ -87,9 +79,9 @@ async def update_contest(id: str, contest: UpdateContest) -> Contest:
 # TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
 @router.delete("/delete/{id}", response_description="Delete a contest")
 async def delete_contest(id: str):
-    delete_result = await contests_collection.delete_one({"_id": ObjectId(id)})
+    delete_result = await Contest.find_one({"_id": ObjectId(id)}).delete()
 
-    if delete_result.deleted_count == 1:
+    if delete_result and delete_result.deleted_count == 1:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Contest {id} not found")
