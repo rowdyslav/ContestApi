@@ -45,45 +45,23 @@ async def users_list():
 
 
 @router.put(
-    "/update/{id}",
-    response_description="Update a User",
-    response_model=User,
-    response_model_by_alias=False,
+    "/update/{user_id}", response_description="Update a user", response_model=User
 )
 async def update_user(user_id: PydanticObjectId, user: UpdateUser) -> User:
-    """
-    Update individual fields of an existing User record.
+    old_user = await User.find_one({"_id": user_id})
+    if not old_user:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
-    Only the provided fields will be updated.
-    Any missing or `null` fields will be ignored.
-    """
-    updated_fields = {
-        k: v for k, v in user.model_dump(by_alias=True).items() if v is not None
-    }
-
+    updated_fields = {k: v for k, v in user.model_dump().items() if v is not None}
     if len(updated_fields) >= 1:
-        update_result = await User.find_one_and_update(
-            {"_id": user_id},
-            {"$set": updated_fields},
-            return_document=ReturnDocument.AFTER,
-        )
-        if update_result is not None:
-            return update_result
-        else:
-            raise HTTPException(status_code=404, detail=f"User {id} not found")
-
-    # The update is empty, but we should still return the matching document:
-    if (existing_user := await User.find_one({"_id": id})) is not None:
-        return existing_user
-
-    raise HTTPException(status_code=404, detail=f"User {id} not found")
+        return await (await old_user.set(updated_fields)).save()
+    else:
+        return old_user
 
 
-@router.delete("/delete/{id}", response_description="Delete a User")
-async def delete_user(id: str):
-    delete_result = await User.delete_one({"_id": ObjectId(id)})
-
-    if delete_result.deleted_count == 1:
+@router.delete("/delete/{user_id}", response_description="Delete a User")
+async def delete_user(user_id: PydanticObjectId):
+    if await User.find_one({"_id": user_id}).delete():
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"User {id} not found")

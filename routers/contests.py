@@ -1,10 +1,9 @@
+from beanie import PydanticObjectId
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
-from models import AddContest, Contest, UpdateContest
-
-from . import contests_collection
+from models import Contest, UpdateContest
 
 router = APIRouter(prefix="/contests", tags=["Contests"])
 
@@ -16,9 +15,7 @@ router = APIRouter(prefix="/contests", tags=["Contests"])
     response_model_by_alias=False,
 )
 async def get_contest(id: str) -> Contest:
-    if (
-        contest := await contests_collection.find_one({"_id": ObjectId(id)})
-    ) is not None:
+    if (contest := await Contest.find_one({"_id": ObjectId(id)})) is not None:
         return contest
 
     raise HTTPException(status_code=404, detail=f"Contest {id} not found")
@@ -31,8 +28,8 @@ async def get_contest(id: str) -> Contest:
     status_code=status.HTTP_201_CREATED,
     response_model_by_alias=False,
 )
-async def add_contest(contest: AddContest) -> Contest:
-    return await Contest(**contest.model_dump()).insert()
+async def add_contest(contest: Contest) -> Contest:
+    return await contest.insert()
 
 
 @router.get(
@@ -46,42 +43,29 @@ async def contests_list():
 
 
 @router.put(
-    "/update/{id}",
+    "/update/{contest_id}",
     response_description="Update a contest",
     response_model=Contest,
     response_model_by_alias=False,
 )
-async def update_contest(id: str, contest: UpdateContest) -> Contest:
-    updated_fields = {
-        k: v for k, v in contest.model_dump(by_alias=True).items() if v is not None
-    }
+async def update_contest(
+    contest_id: PydanticObjectId, contest: UpdateContest
+) -> Contest:
+    old_contest = await Contest.find_one({"_id": contest_id})
+    if not old_contest:
+        raise HTTPException(status_code=404, detail=f"Contest {id} not found")
 
+    updated_fields = {k: v for k, v in contest.model_dump().items() if v is not None}
     if len(updated_fields) >= 1:
-        update_result = await contests_collection.find_one_and_update(
-            {"_id": ObjectId(id)},
-            {"$set": updated_fields},
-            return_document=ReturnDocument.AFTER,
-        )
-        if update_result is not None:
-            return update_result
-        else:
-            raise HTTPException(status_code=404, detail=f"Contest {id} not found")
-
-    # The update is empty, but we should still return the matching document:
-    if (
-        existing_contest := await contests_collection.find_one({"_id": id})
-    ) is not None:
-        return existing_contest
-
-    raise HTTPException(status_code=404, detail=f"Contest {id} not found")
+        return await (await old_contest.set(updated_fields)).save()
+    else:
+        return old_contest
 
 
 # TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
-@router.delete("/delete/{id}", response_description="Delete a contest")
-async def delete_contest(id: str):
-    delete_result = await Contest.find_one({"_id": ObjectId(id)}).delete()
-
-    if delete_result and delete_result.deleted_count == 1:
+@router.delete("/delete/{contest_id}", response_description="Delete a contest")
+async def delete_contest(contest_id: PydanticObjectId):
+    if await Contest.find_one({"_id": contest_id}).delete():
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Contest {id} not found")

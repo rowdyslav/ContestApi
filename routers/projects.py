@@ -1,10 +1,9 @@
+from beanie import PydanticObjectId
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
 from pymongo import ReturnDocument
 
-from models import AddProject, Project, UpdateProject, User
-
-from . import projects_collection, users_collection
+from models import Project, UpdateProject, User
 
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
@@ -16,9 +15,7 @@ router = APIRouter(prefix="/projects", tags=["Projects"])
     response_model_by_alias=False,
 )
 async def get_project(id: str) -> Project:
-    if (
-        project := await projects_collection.find_one({"_id": ObjectId(id)})
-    ) is not None:
+    if (project := await Project.find_one({"_id": ObjectId(id)})) is not None:
         return project
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")
@@ -29,20 +26,18 @@ async def get_project(id: str) -> Project:
     response_description="Add new project",
     response_model=Project,
     status_code=status.HTTP_201_CREATED,
-    response_model_by_alias=False,
 )
-async def add_project(project: AddProject) -> Project:
-    return await Project(**project.model_dump()).insert()
+async def add_project(project: Project) -> Project:
+    return await project.insert()
 
 
 @router.get(
     "/list/",
     response_description="List all projects",
-    response_model_by_alias=False,
 )
 async def projects_list():
     """Показать 1000 записей проектов"""
-    return await projects_collection.find().to_list(1000)
+    return await Project.find().to_list(1000)
 
 
 @router.get(
@@ -52,79 +47,55 @@ async def projects_list():
 )
 async def projects_list_boosts():
     """Возвращает список проектов, отсортированных по количеству бустов"""
-    sort_key = lambda project: project["boosts"]
     return sorted(
-        await projects_collection.find().to_list(1000),
-        key=sort_key,
-        reverse=True,
+        await Project.find().to_list(1000), key=lambda project: ~project.boosts
     )
 
 
 @router.put(
-    "/update/{id}",
+    "/update/{project_id}",
     response_description="Update a project",
     response_model=Project,
     response_model_by_alias=False,
 )
-async def update_project(id: str, project: UpdateProject) -> Project:
-    updated_fields = {
-        k: v for k, v in project.model_dump(by_alias=True).items() if v is not None
-    }
+async def update_project(
+    project_id: PydanticObjectId, project: UpdateProject
+) -> Project:
+    old_project = await Project.find_one({"_id": project_id})
+    if not old_project:
+        raise HTTPException(status_code=404, detail=f"Project {id} not found")
 
+    updated_fields = {k: v for k, v in project.model_dump().items() if v is not None}
     if len(updated_fields) >= 1:
-        update_result = await projects_collection.find_one_and_update(
-            {"_id": ObjectId(id)},
-            {"$set": updated_fields},
-            return_document=ReturnDocument.AFTER,
-        )
-        if update_result is not None:
-            return update_result
-        else:
-            raise HTTPException(status_code=404, detail=f"Project {id} not found")
-
-    # The update is empty, but we should still return the matching document:
-    if (
-        existing_project := await projects_collection.find_one({"_id": id})
-    ) is not None:
-        return existing_project
-
-    raise HTTPException(status_code=404, detail=f"Project {id} not found")
+        return await (await old_project.set(updated_fields)).save()
+    else:
+        return old_project
 
 
 @router.put(
-    "/boost/{id}",
-    response_description="Забустить проект",
+    "/boost/{project_id}",
+    response_description="Boost project",
 )
-async def boost_project(id: str, user: User) -> int:
-    if not bool(
-        user == User.model_validate(await users_collection.find_one(ObjectId(user.id)))
-    ):
-        raise HTTPException(status_code=404, detail=f"User not found")
+async def boost_project(project_id: PydanticObjectId, user: User) -> int:
+    if not bool(user == User.model_validate(await User.find_one({"_id": user.id}))):
+        raise HTTPException(status_code=404, detail=f"User not found or not valid")
 
-    project = Project.model_validate(Project.find_one({"_id": ObjectId(id)}))
-    if user.id in (member_id for member_id in project.users_ids.value):
+    project = await Project.find_one({"_id": project_id})
+    if not project:
+        raise HTTPException(status_code=404, detail=f"Project {project_id} not found")
+    if user in project.users:
         raise HTTPException(
             status_code=409,
-            detail=f"User {user.id} is member of Project {id}. Cannot boost your own project",
+            detail=f"User {user.id} is member of Project {project_id}. Boosting your own projects is prohibited",
         )
-
-    update_result = await projects_collection.find_one_and_update(
-        {"_id": ObjectId(id)},
-        {"$inc": {"boosts": 1}},
-        return_document=ReturnDocument.AFTER,
-    )
-    if update_result is not None:
-        return update_result["boosts"]
-    else:
-        raise HTTPException(status_code=404, detail=f"Project {id} not found")
+    await (await project.inc({"boosts": 1})).save()
+    return project.boosts
 
 
 # TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
-@router.delete("/delete/{id}", response_description="Delete a project")
-async def delete_project(id: str):
-    delete_result = await projects_collection.delete_one({"_id": ObjectId(id)})
-
-    if delete_result.deleted_count == 1:
+@router.delete("/delete/{project_id}", response_description="Delete a project")
+async def delete_project(project_id: PydanticObjectId):
+    if await Project.find_one({"_id": project_id}).delete():
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
     raise HTTPException(status_code=404, detail=f"Project {id} not found")

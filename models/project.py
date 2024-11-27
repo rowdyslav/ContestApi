@@ -6,14 +6,15 @@ from pydantic import BaseModel, BeforeValidator, ConfigDict
 
 from models.user import User
 
+from . import SkipId
+
 Picture = Annotated[bytes, BeforeValidator(bytes)]
-UsersList = List[Link[User]]
 
 
-class Project(Document):
+class Project(Document, SkipId):
     name: str
     description: str
-    users: UsersList = []
+    users: List[Link[User]] = []
     picture: Picture = bytes()
     boosts: int = 0
 
@@ -21,19 +22,12 @@ class Project(Document):
         name = "projects"
 
 
-class AddProject(BaseModel):
-    name: str
-    description: str
-    # Архив обязателен, но для быстрой проверки убрал
-    # archive: Archive = None
-
-
 class UpdateProject(BaseModel):
     """Модель с опциональными полями, которые можно обновить в базе данных"""
 
     name: Optional[str] = None
     description: Optional[str] = None
-    users: Optional[UsersList] = None
+    users: Optional[List[User]] = None
     picture: Optional[Picture] = None
 
     model_config = ConfigDict(

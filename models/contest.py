@@ -6,22 +6,17 @@ from pydantic import BaseModel, ConfigDict
 
 from models.project import Project
 
-ProjectsList = List[Link[Project]]
+from . import SkipId
 
 
-class Contest(Document):
+class Contest(Document, SkipId):
     name: str
     description: str
     alive: bool = True
-    projects: ProjectsList = []
+    projects: List[Link[Project]] = []
 
     class Settings:
         name = "contests"
-
-
-class AddContest(BaseModel):
-    name: str
-    description: str
 
 
 class UpdateContest(BaseModel):
@@ -29,7 +24,7 @@ class UpdateContest(BaseModel):
 
     name: Optional[str] = None
     description: Optional[str] = None
-    projects: Optional[ProjectsList] = None
+    projects: Optional[List[Project]] = None
     alive: Optional[bool] = None
 
     model_config = ConfigDict(

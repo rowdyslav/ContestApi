@@ -1,17 +1,13 @@
 from typing import Annotated, Optional
 
-from beanie import Document, Indexed, PydanticObjectId
+from beanie import Document, Indexed
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
-from pydantic.json_schema import SkipJsonSchema
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from . import SkipId
 
 
 class User(Document, SkipId):
-    # id: SkipJsonSchema[Optional[PydanticObjectId]] = Field(
-    #     default=None, description="MongoDB document ObjectID", exclude=True
-    # )
     username: Annotated[str, Indexed(unique=True)]
     email: Annotated[EmailStr, Indexed(unique=True)]
     name: str
