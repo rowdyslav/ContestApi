@@ -5,5 +5,5 @@ from routers import contests_router, projects_router, users_router
 
 app = FastAPI(lifespan=db_lifespan)
 
-for router in contests_router, projects_router, users_router:
+for router in users_router, projects_router, contests_router:
     app.include_router(router)
