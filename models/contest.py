@@ -1,16 +1,15 @@
-from typing import List, Optional
+from typing import Annotated, List, Optional
 
-from beanie import Document, Link
+from beanie import Document, Indexed, Link
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict
-
 from models.project import Project
+from pydantic import BaseModel, ConfigDict
 
 from . import SkipId
 
 
 class Contest(Document, SkipId):
-    name: str
+    title: Annotated[str, Indexed(unique=True)]
     description: str
     alive: bool = True
     projects: List[Link[Project]] = []
@@ -22,7 +21,7 @@ class Contest(Document, SkipId):
 class UpdateContest(BaseModel):
     """Модель с опциональными полями, которые можно обновить в базе данных"""
 
-    name: Optional[str] = None
+    title: Optional[str] = None
     description: Optional[str] = None
     projects: Optional[List[Project]] = None
     alive: Optional[bool] = None
