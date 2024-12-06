@@ -3,18 +3,15 @@ from typing import Annotated, List, Optional
 from beanie import Document, Indexed, Link
 from bson import ObjectId
 from models.user import User
-from pydantic import BaseModel, BeforeValidator, ConfigDict
+from pydantic import BaseModel, ConfigDict
 
 from . import SkipId
 
-Picture = Annotated[bytes, BeforeValidator(bytes)]
 
-
-class Project(Document, SkipId):
+class Project(Document):  # , SkipId):
     title: Annotated[str, Indexed(unique=True)]
     description: str
     users: List[Link[User]] = []
-    picture: Picture = bytes()
     boosts: int = 0
 
     class Settings:
@@ -27,7 +24,6 @@ class UpdateProject(BaseModel):
     title: Optional[str] = None
     description: Optional[str] = None
     users: Optional[List[User]] = None
-    picture: Optional[Picture] = None
 
     model_config = ConfigDict(
         arbitrary_types_allowed=True,

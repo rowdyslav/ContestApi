@@ -8,7 +8,7 @@ from pydantic import BaseModel, ConfigDict
 from . import SkipId
 
 
-class Contest(Document, SkipId):
+class Contest(Document):  # , SkipId):
     title: Annotated[str, Indexed(unique=True)]
     description: str
     alive: bool = True

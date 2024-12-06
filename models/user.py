@@ -7,7 +7,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 from . import SkipId
 
 
-class User(Document, SkipId):
+class User(Document):  # , SkipId):
     username: Annotated[str, Indexed(unique=True)]
     email: Annotated[EmailStr, Indexed(unique=True)]
     name: str
