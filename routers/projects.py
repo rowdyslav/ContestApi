@@ -1,7 +1,6 @@
 from beanie import PydanticObjectId
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
-from pymongo import ReturnDocument
 
 from models import Project, UpdateProject, User
 
@@ -27,7 +26,7 @@ async def add_project(project: Project) -> Project:
 
 
 @router.get("/list/", response_description="List all projects")
-async def projects_list():
+async def projects_list() -> list[Project]:
     """Показать 1000 записей проектов"""
     return await Project.find().to_list(1000)
 

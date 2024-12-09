@@ -29,7 +29,7 @@ async def add_user(user: User) -> User:
 
 
 @router.get("/list/", response_description="List all Users", response_model=List[User])
-async def users_list():
+async def users_list() -> list[User]:
     "Показать 1000 записей студентов"
     return await User.find().to_list(1000)
 

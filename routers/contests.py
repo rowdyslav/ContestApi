@@ -26,7 +26,7 @@ async def add_contest(contest: Contest) -> Contest:
 
 
 @router.get("/list/", response_description="List all contests")
-async def contests_list():
+async def contests_list() -> list[Contest]:
     """Показать 1000 записей контестов"""
     return await Contest.find().to_list(1000)
 
