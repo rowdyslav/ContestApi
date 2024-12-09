@@ -1,8 +1,7 @@
 from typing import List
 
 from beanie import PydanticObjectId
-from fastapi import APIRouter, HTTPException, Path, Response, status
-from pymongo import ReturnDocument
+from fastapi import APIRouter, HTTPException, Response, status
 
 from models import UpdateUser, User
 
@@ -10,10 +9,7 @@ router = APIRouter(prefix="/users", tags=["Users"])
 
 
 @router.get(
-    "/get/{user_id}",
-    response_description="Get a single User",
-    response_model=User,
-    response_model_by_alias=False,
+    "/get/{user_id}", response_description="Get a single User", response_model=User
 )
 async def get_user(user_id: PydanticObjectId) -> User:
     if (user := await User.find_one({"_id": user_id})) is not None:
@@ -27,18 +23,12 @@ async def get_user(user_id: PydanticObjectId) -> User:
     response_description="Add new User",
     response_model=User,
     status_code=status.HTTP_201_CREATED,
-    response_model_by_alias=False,
 )
 async def add_user(user: User) -> User:
-    return await User(**user.model_dump()).insert()
+    return await user.insert()
 
 
-@router.get(
-    "/list/",
-    response_description="List all Users",
-    response_model=List[User],
-    response_model_by_alias=False,
-)
+@router.get("/list/", response_description="List all Users", response_model=List[User])
 async def users_list():
     "Показать 1000 записей студентов"
     return await User.find().to_list(1000)

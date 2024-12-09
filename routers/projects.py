@@ -8,12 +8,7 @@ from models import Project, UpdateProject, User
 router = APIRouter(prefix="/projects", tags=["Projects"])
 
 
-@router.get(
-    "/get/{id}",
-    response_description="Get a single project",
-    response_model=Project,
-    response_model_by_alias=False,
-)
+@router.get("/get/{id}", response_model=Project)
 async def get_project(id: str) -> Project:
     if (project := await Project.find_one({"_id": ObjectId(id)})) is not None:
         return project
@@ -23,7 +18,7 @@ async def get_project(id: str) -> Project:
 
 @router.post(
     "/add/",
-    response_description="Add new project",
+    response_description="New project",
     response_model=Project,
     status_code=status.HTTP_201_CREATED,
 )
@@ -31,20 +26,13 @@ async def add_project(project: Project) -> Project:
     return await project.insert()
 
 
-@router.get(
-    "/list/",
-    response_description="List all projects",
-)
+@router.get("/list/", response_description="List all projects")
 async def projects_list():
     """Показать 1000 записей проектов"""
     return await Project.find().to_list(1000)
 
 
-@router.get(
-    "/list/boosts",
-    response_description="List all projects sorted by boosts",
-    response_model_by_alias=False,
-)
+@router.get("/list/boosts", response_description="List all projects sorted by boosts")
 async def projects_list_boosts():
     """Возвращает список проектов, отсортированных по количеству бустов"""
     return sorted(
@@ -54,9 +42,8 @@ async def projects_list_boosts():
 
 @router.put(
     "/update/{project_id}",
-    response_description="Update a project",
+    response_description="Updated project",
     response_model=Project,
-    response_model_by_alias=False,
 )
 async def update_project(
     project_id: PydanticObjectId, project: UpdateProject
@@ -72,10 +59,7 @@ async def update_project(
         return old_project
 
 
-@router.put(
-    "/boost/{project_id}",
-    response_description="Boost project",
-)
+@router.put("/boost/{project_id}", response_description="New boosts count")
 async def boost_project(project_id: PydanticObjectId, user: User) -> int:
     if not bool(user == User.model_validate(await User.find_one({"_id": user.id}))):
         raise HTTPException(status_code=404, detail=f"User not found or not valid")
@@ -92,10 +76,11 @@ async def boost_project(project_id: PydanticObjectId, user: User) -> int:
     return project.boosts
 
 
-# TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
-@router.delete("/delete/{project_id}", response_description="Delete a project")
+@router.delete("/delete/{project_id}")
 async def delete_project(project_id: PydanticObjectId):
     if await Project.find_one({"_id": project_id}).delete():
         return Response(status_code=status.HTTP_204_NO_CONTENT)
 
-    raise HTTPException(status_code=404, detail=f"Project {id} not found")
+    raise HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail=f"Project {id} not found"
+    )

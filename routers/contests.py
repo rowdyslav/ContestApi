@@ -1,19 +1,13 @@
 from beanie import PydanticObjectId
 from bson import ObjectId
 from fastapi import APIRouter, HTTPException, Response, status
-from pymongo import ReturnDocument
 
 from models import Contest, UpdateContest
 
 router = APIRouter(prefix="/contests", tags=["Contests"])
 
 
-@router.get(
-    "/get/{id}",
-    response_description="Get a single contest",
-    response_model=Contest,
-    response_model_by_alias=False,
-)
+@router.get("/get/{id}", response_model=Contest)
 async def get_contest(id: str) -> Contest:
     if (contest := await Contest.find_one({"_id": ObjectId(id)})) is not None:
         return contest
@@ -23,20 +17,15 @@ async def get_contest(id: str) -> Contest:
 
 @router.post(
     "/add/",
-    response_description="Add new contest",
+    response_description="New contest",
     response_model=Contest,
     status_code=status.HTTP_201_CREATED,
-    response_model_by_alias=False,
 )
 async def add_contest(contest: Contest) -> Contest:
     return await contest.insert()
 
 
-@router.get(
-    "/list/",
-    response_description="List all contests",
-    response_model_by_alias=False,
-)
+@router.get("/list/", response_description="List all contests")
 async def contests_list():
     """Показать 1000 записей контестов"""
     return await Contest.find().to_list(1000)
@@ -44,9 +33,8 @@ async def contests_list():
 
 @router.put(
     "/update/{contest_id}",
-    response_description="Update a contest",
+    response_description="Updated contest",
     response_model=Contest,
-    response_model_by_alias=False,
 )
 async def update_contest(
     contest_id: PydanticObjectId, contest: UpdateContest
@@ -62,8 +50,7 @@ async def update_contest(
         return old_contest
 
 
-# TODO: Мб добавить отдельный поток, с удалением старых конкурсов.
-@router.delete("/delete/{contest_id}", response_description="Delete a contest")
+@router.delete("/delete/{contest_id}")
 async def delete_contest(contest_id: PydanticObjectId):
     if await Contest.find_one({"_id": contest_id}).delete():
         return Response(status_code=status.HTTP_204_NO_CONTENT)
