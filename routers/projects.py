@@ -39,7 +39,7 @@ async def projects_list_boosts():
     )
 
 
-@router.put(
+@router.patch(
     "/update/{project_id}",
     response_description="Updated project",
     response_model=Project,

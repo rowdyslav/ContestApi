@@ -34,7 +34,7 @@ async def users_list() -> list[User]:
     return await User.find().to_list(1000)
 
 
-@router.put(
+@router.patch(
     "/update/{user_id}", response_description="Update a user", response_model=User
 )
 async def update_user(user_id: PydanticObjectId, user: UpdateUser) -> User:

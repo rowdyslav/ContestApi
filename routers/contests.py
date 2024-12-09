@@ -31,7 +31,7 @@ async def contests_list() -> list[Contest]:
     return await Contest.find().to_list(1000)
 
 
-@router.put(
+@router.patch(
     "/update/{contest_id}",
     response_description="Updated contest",
     response_model=Contest,
