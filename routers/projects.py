@@ -31,7 +31,7 @@ async def projects_list() -> list[Project]:
     return await Project.find().to_list(1000)
 
 
-@router.get("/list/boosts", response_description="List all projects sorted by boosts")
+@router.get("/list/boosts/", response_description="List all projects sorted by boosts")
 async def projects_list_boosts():
     """Возвращает список проектов, отсортированных по количеству бустов"""
     return sorted(
