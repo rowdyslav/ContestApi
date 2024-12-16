@@ -4,8 +4,6 @@ from beanie import Document, Indexed
 from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-from . import SkipId
-
 
 class User(Document):  # , SkipId):
     username: Annotated[str, Indexed(unique=True)]

@@ -2,10 +2,9 @@ from typing import Annotated, List, Optional
 
 from beanie import Document, Indexed, Link
 from bson import ObjectId
-from models.project import Project
 from pydantic import BaseModel, ConfigDict
 
-from . import SkipId
+from models.project import Project
 
 
 class Contest(Document):  # , SkipId):
