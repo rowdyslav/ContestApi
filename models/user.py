@@ -2,7 +2,8 @@ from typing import Annotated, Optional
 
 from beanie import Document, Indexed
 from bson import ObjectId
-from pydantic import BaseModel, ConfigDict, EmailStr
+from fastapi import File, UploadFile
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 
 class User(Document):  # , SkipId):
@@ -10,9 +11,17 @@ class User(Document):  # , SkipId):
     email: Annotated[EmailStr, Indexed(unique=True)]
     name: str
     surname: str
+    picture: Optional[bytes]
 
     class Settings:
         name = "users"
+
+
+class AddUser(BaseModel):
+    username: str
+    email: EmailStr
+    name: str
+    surname: str
 
 
 class UpdateUser(BaseModel):
