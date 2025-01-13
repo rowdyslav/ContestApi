@@ -2,4 +2,4 @@
 
 from .contest import Contest, UpdateContest
 from .project import Project, UpdateProject
-from .user import AddUser, UpdateUser, User
+from .user import UpdateUser, User

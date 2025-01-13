@@ -1,19 +1,18 @@
 from typing import Annotated, List, Optional
 
-from beanie import PydanticObjectId
+from beanie import Link, PydanticObjectId
+from bson import DBRef
 from fastapi import (
     APIRouter,
-    Body,
-    Depends,
     File,
-    Form,
     HTTPException,
     Response,
     UploadFile,
     status,
 )
 
-from models import AddUser, UpdateUser, User
+from models import UpdateUser, User
+from database import fs
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -34,11 +33,8 @@ async def get_user(user_id: PydanticObjectId) -> User:
     response_model=User,
     status_code=status.HTTP_201_CREATED,
 )
-async def add_user(
-    user: AddUser = Depends(), user_picture: UploadFile = File()
-) -> User:
-    new_user = User(**{**user.model_dump(), "picture": await user_picture.read()})
-    return await new_user.insert()
+async def add_user(user: User) -> User:
+    return await user.insert()
 
 
 @router.get("/list/", response_description="List all Users", response_model=List[User])
@@ -50,20 +46,40 @@ async def users_list() -> list[User]:
 @router.patch(
     "/update/{user_id}", response_description="Update a user", response_model=User
 )
-async def update_user(
-    user_id: PydanticObjectId, user: UpdateUser, user_picture: Optional[UploadFile]
-) -> User:
+async def update_user(user_id: PydanticObjectId, user: UpdateUser) -> User:
     old_user = await User.find_one({"_id": user_id})
     if not old_user:
         raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
     updated_fields = {k: v for k, v in user.model_dump().items() if v is not None}
-    if user_picture:
-        updated_fields["picture"] = await user_picture.read()
     if len(updated_fields) >= 1:
         return await (await old_user.set(updated_fields)).save()
     else:
         return old_user
+
+
+@router.get(
+    "/get_avatar/{user_id}", response_description="Get user avatar", response_model=file
+)
+async def get_user_avatar(user_id):
+    # if (user := await User.find_one({"_id": user_id})) is not None:
+    #     avatar_id = fs.find(user.avatar["id"])
+    #     avatar = fs.find(avatar_id)
+    #     return avatar_link
+
+    raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+
+
+@router.post(
+    "/set_avatar/{user_id}", response_description="Set user avatar", response_model=User
+)
+async def set_user_avatar(user_id: PydanticObjectId, user_avatar: UploadFile = File()):
+    if (user := await User.find_one({"_id": user_id})) is not None:
+        avatar_id = fs.put(user_avatar.file)
+        await user.set({"avatar": DBRef("fs", avatar_id)})
+        return user
+
+    raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
 
 @router.delete("/delete/{user_id}", response_description="Delete a User")
