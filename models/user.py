@@ -1,7 +1,7 @@
 from typing import Annotated, Optional
 
 from beanie import Document, Indexed, Link
-from bson import ObjectId
+from bson import DBRef, ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr
 
 
@@ -10,7 +10,6 @@ class User(Document):
     email: Annotated[EmailStr, Indexed(unique=True)]
     name: str
     surname: str
-    avatar: Link
 
     class Settings:
         name = "users"

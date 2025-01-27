@@ -52,23 +52,38 @@ async def update_user(user_id: PydanticObjectId, user: UpdateUser) -> User:
 
 
 @router.get("/get_avatar/{user_id}", response_description="Get user avatar")
-async def get_user_avatar(user_id):
-    if (user := await User.find_one({"_id": user_id})) is not None:
-        avatar_id = fs.find(user.avatar["id"])
-        avatar = fs.find(avatar_id)
-        return avatar_link
+async def get_user_avatar(user_id: PydanticObjectId):
+    if (user := await User.find_one({"_id": user_id})) is None:
+        raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
-    raise HTTPException(status_code=404, detail=f"User {user_id} not found")
+    from icecream import ic
+
+    ic(user)
+    c = fs.find()
+    while await c.fetch_next:
+        ic(await c.next_object())
+
+    avatar = (
+        await fs.find({"filename": user.username + ".png"}, no_cursor_timeout=True)
+        .next_object()
+        .read()
+    )
+    return avatar
 
 
 @router.post(
-    "/set_avatar/{user_id}", response_description="Set user avatar", response_model=User
+    "/set_avatar/{user_id}",
+    response_description="Set user avatar",
+    response_model=PydanticObjectId,
 )
 async def set_user_avatar(user_id: PydanticObjectId, user_avatar: UploadFile = File()):
     if (user := await User.find_one({"_id": user_id})) is not None:
-        avatar_id = fs.put(user_avatar.file)
-        await user.set({"avatar": DBRef("fs", avatar_id)})
-        return user
+        user_avatar_id = await fs.upload_from_stream(
+            user.username,
+            user_avatar.file,
+            metadata={"content_type": user_avatar.content_type},
+        )
+        return user_avatar_id
 
     raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 
