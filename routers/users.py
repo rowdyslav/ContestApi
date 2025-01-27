@@ -2,17 +2,10 @@ from typing import Annotated, List, Optional
 
 from beanie import Link, PydanticObjectId
 from bson import DBRef
-from fastapi import (
-    APIRouter,
-    File,
-    HTTPException,
-    Response,
-    UploadFile,
-    status,
-)
+from fastapi import APIRouter, File, HTTPException, Response, UploadFile, status
 
-from models import UpdateUser, User
 from database import fs
+from models import UpdateUser, User
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -58,14 +51,12 @@ async def update_user(user_id: PydanticObjectId, user: UpdateUser) -> User:
         return old_user
 
 
-@router.get(
-    "/get_avatar/{user_id}", response_description="Get user avatar", response_model=file
-)
+@router.get("/get_avatar/{user_id}", response_description="Get user avatar")
 async def get_user_avatar(user_id):
-    # if (user := await User.find_one({"_id": user_id})) is not None:
-    #     avatar_id = fs.find(user.avatar["id"])
-    #     avatar = fs.find(avatar_id)
-    #     return avatar_link
+    if (user := await User.find_one({"_id": user_id})) is not None:
+        avatar_id = fs.find(user.avatar["id"])
+        avatar = fs.find(avatar_id)
+        return avatar_link
 
     raise HTTPException(status_code=404, detail=f"User {user_id} not found")
 

@@ -7,8 +7,8 @@ from environs import Env
 from fastapi import FastAPI
 from icecream import ic
 from motor.motor_asyncio import AsyncIOMotorClient, AsyncIOMotorGridFSBucket
+
 from models import Contest, Project, User
-from gridfs import GridFS
 
 dns.resolver.default_resolver = dns.resolver.Resolver(configure=False)
 dns.resolver.default_resolver.nameservers = ["8.8.8.8"]
