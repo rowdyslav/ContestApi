@@ -1,8 +1,9 @@
 from typing import Annotated, Optional
 
-from beanie import Document, Indexed, Link
-from bson import DBRef, ObjectId
+from beanie import Document, Indexed
+from bson import ObjectId
 from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic.json_schema import SkipJsonSchema
 
 
 class User(Document):
@@ -10,6 +11,7 @@ class User(Document):
     email: Annotated[EmailStr, Indexed(unique=True)]
     name: str
     surname: str
+    avatar: SkipJsonSchema[Optional[str]] = None
 
     class Settings:
         name = "users"
